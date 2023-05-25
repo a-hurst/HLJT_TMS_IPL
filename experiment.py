@@ -13,10 +13,11 @@ from klibs.KLEventQueue import pump, flush
 from klibs.KLUserInterface import any_key, key_pressed, ui_request
 from klibs.KLUtilities import deg_to_px
 from klibs.KLCommunication import message
-from klibs.KLResponseCollectors import KeyPressResponse, Response
 from klibs.KLTime import CountDown
 
 from PIL import Image
+
+from responselistener import KeyPressListener
 
 
 WHITE = (255, 255, 255)
@@ -54,11 +55,10 @@ class HLJT(klibs.Experiment):
 					self.images[basename] = img
 
 		# Initialize the response collector
-		self.key_listener = KeyPressResponse()
-		self.key_listener.key_map = {
+		self.key_listener = KeyPressListener({
 			'p': "R", # Right hand
 			'q': "L", # Left hand
-		}
+		})
 
 		# Initialize runtime variables
 		self.trials_since_break = 0
@@ -165,13 +165,6 @@ class HLJT(klibs.Experiment):
 			self.first_block = True
 
 
-	def setup_response_collector(self):
-		# A bit of a hack until this is cleaned up in KLibs
-		self.key_listener._rc_start = None
-		self.key_listener.reset()
-		self.key_listener.init()
-
-
 	def trial_prep(self):
 		# Check if it's time for a break
 		if self.trials_since_break >= P.break_interval:
@@ -200,12 +193,7 @@ class HLJT(klibs.Experiment):
 		flip()
 
 		# Initialize and enter the response collection loop
-		self.key_listener._rc_start = self.evm.trial_time_ms
-		response = None
-		while not response:
-			q = pump(True)
-			ui_request(queue=q)
-			response = self.key_listener.listen(q)
+		response = self.key_listener.collect()
 
 		return {
 			"block_num": P.block_number,
