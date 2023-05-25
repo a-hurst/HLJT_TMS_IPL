@@ -93,10 +93,11 @@ class HLJT(klibs.Experiment):
 		hands_width = int(P.screen_x * 0.6)
 		hand_width = int(hands_width / (len(hand_offsets) + 1))
 		hand_offset = hand_width + int(hand_width / 4)
+		hand_rotations = random_choices(self.trial_factory.exp_factors['rotation'], 5)
 
 		demo_hands = []
 		for i in range(len(hand_offsets)):
-			rotation = random.choice(self.trial_factory.exp_factors['rotation'])
+			rotation = hand_rotations[i]
 			hand_name = random.choice(list(self.images.keys()))
 			img = img_scale(self.images[hand_name], height=hand_width)
 			img = img.rotate(rotation, expand=True)
@@ -115,7 +116,7 @@ class HLJT(klibs.Experiment):
 			blit(msg2, 8, text_loc)
 			for i in range(len(hand_offsets)):
 				x_loc = int(P.screen_c[0] + (hand_offsets[i] * hand_offset))
-				y_loc = int(P.screen_y * 0.6)
+				y_loc = int(P.screen_y * 0.65)
 				blit(demo_hands[i], 5, (x_loc, y_loc))
 			if not min_wait.counting():
 				blit(next_msg, 5, (P.screen_c[0], int(P.screen_y * 0.85)))
@@ -150,7 +151,7 @@ class HLJT(klibs.Experiment):
 		elif P.practicing:
 			msg1 = message(
 				("You will now complete a few practice trials to familiarize\n"
-				 "you with the task."),
+				 "yourself with the task."),
 				blit_txt=False, align='center'
 			)
 			msg2 = message("Press any key to begin.", blit_txt=False)
@@ -225,6 +226,19 @@ class HLJT(klibs.Experiment):
 		pass
 
 
+
+def random_choices(x, n=1):
+	# Make random choices from a list, ensuring all elements from x are chosen
+	# at least once if n >= len(x)
+	out = x.copy()
+	random.shuffle(out)
+	while len(out) < n:
+		more = x.copy()
+		random.shuffle(more)
+		out += more
+	return out[:n]
+
+
 def img_scale(img, width=None, height=None):
 	# Resize an image while perserving its aspect ratio
 	aspect = img.size[0] / float(img.size[1])
@@ -241,19 +255,23 @@ def img_scale(img, width=None, height=None):
 	return img.resize(new_size, resample=Image.LANCZOS)
 
 
-def wait_msg(msg1, msg2, delay=1.0):
+def wait_msg(msg1, msg2, delay=1.5):
+	# Try sizing/positioning relative to first message
+    y1_loc = P.screen_y * 0.45 + (msg1.height / 2)
+    y2_loc = y1_loc + msg2.height
+
     # Show first part of message and wait for the delay
     message_interval = CountDown(delay)
     while message_interval.counting():
         ui_request() # Allow quitting during loop
         fill()
-        blit(msg1, 8, (P.screen_c[0], P.screen_y*0.4))
+        blit(msg1, 2, (P.screen_c[0], y1_loc))
         flip()
     flush()
     
     # Show the second part of the message and wait for input
     fill()
-    blit(msg1, 8, (P.screen_c[0], P.screen_y*0.4))
-    blit(msg2, 5, [P.screen_c[0], P.screen_y*0.6])
+    blit(msg1, 2, (P.screen_c[0], y1_loc))
+    blit(msg2, 8, [P.screen_c[0], y2_loc])
     flip()
     any_key()
