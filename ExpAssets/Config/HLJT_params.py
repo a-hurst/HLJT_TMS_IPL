@@ -11,10 +11,13 @@ multi_user = False
 view_distance = 57 # in centimeters, 57cm = 1 deg of visual angle per cm of screen
 
 #########################################
-# Available Hardware
+# TMS Configuration
 #########################################
-eye_tracker_available = False
-eye_tracking = False
+tms_serial_port = '/dev/ttyUSB0' # Usually 'COM1' on Windows
+labjack_port = 'FIO' # Either FIO, EIO, or CIO
+trigger_codes = {
+    'TMS_fire': 17, # EMG marker 1 + fire TMS on pin 5
+}
 
 #########################################
 # Environment Aesthetic Defaults

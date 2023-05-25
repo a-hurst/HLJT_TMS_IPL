@@ -18,6 +18,7 @@ from klibs.KLTime import CountDown
 from PIL import Image
 
 from responselistener import KeyPressListener
+from communication import get_trigger_port, get_tms_controller
 
 
 WHITE = (255, 255, 255)
