@@ -49,7 +49,7 @@ default_condition = None
 # Development Mode Settings
 #########################################
 dm_auto_threshold = True
-dm_trial_show_mouse = True
+dm_trial_show_mouse = False
 dm_ignore_local_overrides = False
 dm_show_gaze_dot = True
 
@@ -66,3 +66,4 @@ datafile_ext = ".txt"
 # PROJECT-SPECIFIC VARS
 #########################################
 break_interval = 54  # trials
+hand_size_deg = 8.0 # height of hand stimuli (in degrees)

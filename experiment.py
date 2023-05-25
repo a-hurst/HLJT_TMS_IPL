@@ -31,7 +31,7 @@ class HLJT(klibs.Experiment):
 		# Stimulus sizes
 		fix_size = deg_to_px(0.5)
 		fix_thickness = deg_to_px(0.1)
-		img_height = int(P.screen_y * 0.6)
+		img_height = deg_to_px(P.hand_size_deg)
 
 		self.fixation = kld.FixationCross(fix_size, fix_thickness, fill=WHITE)
 
@@ -44,13 +44,12 @@ class HLJT(klibs.Experiment):
 		for hand in hands:
 			for sex in sexes:
 				for angle in angles:
-					# Load in image file and get its aspect ratio
+					# Load in image file and crop out the transparent regions
 					basename = tmp.format(sex, hand, angle)
 					img = Image.open(os.path.join(P.image_dir, basename + ".png"))
-					aspect = img.size[0] / float(img.size[1])
-					# Resize the image while preserving aspect ratio
-					new_size = (int(round(img_height * aspect)), img_height)
-					img = img.resize(new_size, resample=Image.LANCZOS)
+					img = img.crop(img.getbbox())
+					# Resize the image while preserving its aspect ratio
+					img = img_scale(img, height=img_height)
 					# Save resized image to dict
 					self.images[basename] = img
 
@@ -106,8 +105,9 @@ class HLJT(klibs.Experiment):
 		for i in range(len(hand_offsets)):
 			rotation = random.choice(self.trial_factory.exp_factors['rotation'])
 			hand_name = random.choice(list(self.images.keys()))
-			img = self.images[hand_name].rotate(rotation)
-			demo_hands.append(NumpySurface(img, width=hand_width))
+			img = img_scale(self.images[hand_name], height=hand_width)
+			img = img.rotate(rotation, expand=True)
+			demo_hands.append(NumpySurface(img))
 		demo_hand_l = NumpySurface(self.images["F_L_90"], width=hand_width)
 		demo_hand_r = NumpySurface(self.images["F_R_90"], width=hand_width)
 
@@ -173,7 +173,7 @@ class HLJT(klibs.Experiment):
 
 		# Prepare (and rotate) the hand image for the trial
 		img_name = "{0}_{1}_{2}".format(self.sex, self.hand, self.angle)
-		img = self.images[img_name].rotate(self.rotation)
+		img = self.images[img_name].rotate(self.rotation, expand=True)
 		self.hand_image = NumpySurface(img)
 
 
@@ -230,6 +230,22 @@ class HLJT(klibs.Experiment):
 
 	def clean_up(self):
 		pass
+
+
+def img_scale(img, width=None, height=None):
+	# Resize an image while perserving its aspect ratio
+	aspect = img.size[0] / float(img.size[1])
+	if height:
+		if width:
+			new_size = (height, width)
+		else:
+			new_size = (int(round(height * aspect)), height)
+	else:
+		if width:
+			new_size = (width, int(round(width / aspect)))
+		else:
+			return img.copy()
+	return img.resize(new_size, resample=Image.LANCZOS)
 
 
 def wait_msg(msg1, msg2, delay=1.0):
