@@ -1,6 +1,8 @@
 # Hand Laterality Judgement Task
 
-The Hand Laterality Judgement Task (HLJT) is a paradigm for measuring motor imagery performance, first described in [Cooper and Shepard (1975)](https://psycnet.apa.org/doi/10.1037/0096-1523.1.1.48) and extended in later work (e.g. [Ter Horst et al., 2010](https://doi.org/10.1007/s00221-010-2235-1)).
+The Hand Laterality Judgement Task (HLJT) is a paradigm for measuring motor imagery performance, first described in [Cooper and Shepard (1975)](https://psycnet.apa.org/doi/10.1037/0096-1523.1.1.48) and extended in later work (e.g. [Ter Horst et al., 2010](https://doi.org/10.1007/s00221-010-2235-1)). This version is based on the implementation described in [Kraeutner et al. (2020)](https://doi.org/10.1016/j.psychsport.2020.101673).
+
+![HLJT Animation](task.gif)
 
 During the HLJT, images of left and right hands are presented on screen at different viewing angles and rotations, and participants are asked to judge whether each presented hand is a left hand or right hand using the keyboard.
 
