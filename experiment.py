@@ -67,14 +67,7 @@ class HLJT(klibs.Experiment):
 		if P.run_practice_blocks:
 			self.insert_practice_block(1, trial_counts=12)
 
-		# Experiment start message
-		msg = message("Press any key to begin.", blit_txt=False)
-		fill()
-		blit(msg, 5, P.screen_c)
-		flip()
-		flush()
-		any_key()
-
+		# Run through task instructions
 		self.instructions()
 
 
