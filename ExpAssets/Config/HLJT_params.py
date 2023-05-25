@@ -66,4 +66,5 @@ datafile_ext = ".txt"
 # PROJECT-SPECIFIC VARS
 #########################################
 break_interval = 54  # trials
+fixation_duration = 3.5 # seconds
 hand_size_deg = 8.0 # height of hand stimuli (in degrees)
