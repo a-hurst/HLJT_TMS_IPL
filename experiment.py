@@ -245,7 +245,13 @@ class HLJT(klibs.Experiment):
 		flip()
 
 		# Initialize and enter the response collection loop
-		response = self.key_listener.collect()
+		response = None
+		self.key_listener.init()
+		while not response:
+			q = pump(True)
+			ui_request(queue=q)
+			response = self.key_listener.listen(q)
+		self.key_listener.cleanup()
 
 		return {
 			"block_num": P.block_number,
