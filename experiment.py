@@ -3,6 +3,7 @@
 __author__ = "Austin Hurst"
 
 import os
+import time
 import random
 
 import klibs
@@ -28,6 +29,11 @@ WHITE = (255, 255, 255)
 class HLJT(klibs.Experiment):
 
 	def setup(self):
+
+		# Initialize communication with with the TMS and trigger port
+		self.trigger = get_trigger_port()
+		self.trigger.add_codes(P.trigger_codes)
+		self.magstim = get_tms_controller()
 
 		# Stimulus sizes
 		fix_size = deg_to_px(0.5)
@@ -68,8 +74,59 @@ class HLJT(klibs.Experiment):
 		if P.run_practice_blocks:
 			self.insert_practice_block(1, trial_counts=12)
 
+		# Set power level to 110% of the participant's RMT
+		self.rmt = self.get_rmt_power()
+		self.stim_power = int(round(self.rmt * 1.1))
+		self.magstim.set_power(self.stim_power)
+
 		# Run through task instructions
 		self.instructions()
+
+
+	def get_rmt_power(self):
+		rmt = self.magstim.get_power()
+		txt = "Is {0}% the correct RMT for the participant? (Yes / No)"
+		msg1 = message(txt.format(rmt), blit_txt = False)
+		msg2 = message(
+			"Please set the TMS power level to the correct RMT using the arrow keys,\n"
+			"then press the [return] key to continue.",
+			blit_txt = False, align = 'center'
+		)
+
+		rmt_confirmed = False
+		flush()
+		while not rmt_confirmed:
+			# Draw RMT prompt to the screen
+			fill()
+			blit(msg1, 5, P.screen_c)
+			flip()
+			# Check for responses in input queue
+			q = pump(True)
+			if key_pressed('y', queue=q):
+				rmt_confirmed = True
+			elif key_pressed('n', queue=q):
+				break
+
+		# If TMS power level is incorrect, give chance to adjust w/ arrow keys
+		rmt_temp = rmt
+		while not rmt_confirmed:
+			pwr_msg = message("Power level: {0}%".format(rmt_temp), blit_txt=False)
+			fill()
+			blit(msg2, 2, P.screen_c)
+			blit(pwr_msg, 5, (P.screen_c[0], int(P.screen_y * 0.55)))
+			flip()
+			q = pump(True)
+			if key_pressed('up', queue=q) and rmt_temp <= 100:
+				rmt_temp += 1
+			elif key_pressed('down', queue=q) and rmt_temp >= 0:
+				rmt_temp -= 1
+			elif key_pressed('return', queue=q):
+				self.magstim.set_power(rmt_temp)
+				time.sleep(0.1)  # Give the TMS a break between commands
+				rmt = self.magstim.get_power()
+				rmt_confirmed = True
+
+		return rmt
 
 
 	def instructions(self):
@@ -258,21 +315,21 @@ def img_scale(img, width=None, height=None):
 
 def wait_msg(msg1, msg2, delay=1.5):
 	# Try sizing/positioning relative to first message
-    y1_loc = P.screen_y * 0.45 + (msg1.height / 2)
-    y2_loc = y1_loc + msg2.height
+	y1_loc = P.screen_y * 0.45 + (msg1.height / 2)
+	y2_loc = y1_loc + msg2.height
 
-    # Show first part of message and wait for the delay
-    message_interval = CountDown(delay)
-    while message_interval.counting():
-        ui_request() # Allow quitting during loop
-        fill()
-        blit(msg1, 2, (P.screen_c[0], y1_loc))
-        flip()
-    flush()
-    
-    # Show the second part of the message and wait for input
-    fill()
-    blit(msg1, 2, (P.screen_c[0], y1_loc))
-    blit(msg2, 8, [P.screen_c[0], y2_loc])
-    flip()
-    any_key()
+	# Show first part of message and wait for the delay
+	message_interval = CountDown(delay)
+	while message_interval.counting():
+		ui_request() # Allow quitting during loop
+		fill()
+		blit(msg1, 2, (P.screen_c[0], y1_loc))
+		flip()
+	flush()
+	
+	# Show the second part of the message and wait for input
+	fill()
+	blit(msg1, 2, (P.screen_c[0], y1_loc))
+	blit(msg2, 8, [P.screen_c[0], y2_loc])
+	flip()
+	any_key()
