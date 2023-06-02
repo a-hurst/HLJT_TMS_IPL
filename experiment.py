@@ -257,6 +257,7 @@ class HLJT(klibs.Experiment):
 		fill()
 		blit(self.fixation, 5, P.screen_c)
 		flip()
+		self.trigger.send('trial_start')
 		fixation_period = CountDown(P.fixation_duration)
 		while fixation_period.counting():
 			ui_request()

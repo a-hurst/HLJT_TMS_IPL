@@ -16,6 +16,7 @@ view_distance = 57 # in centimeters, 57cm = 1 deg of visual angle per cm of scre
 tms_serial_port = '/dev/ttyUSB0' # Usually 'COM1' on Windows
 labjack_port = 'FIO' # Either FIO, EIO, or CIO
 trigger_codes = {
+    'trial_start': 2,
     'fire_tms': 17, # EMG marker 1 + fire TMS on pin 5
 }
 
