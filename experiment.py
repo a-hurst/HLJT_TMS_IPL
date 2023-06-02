@@ -14,7 +14,7 @@ from klibs.KLEventQueue import pump, flush
 from klibs.KLUserInterface import any_key, key_pressed, ui_request
 from klibs.KLUtilities import deg_to_px
 from klibs.KLCommunication import message
-from klibs.KLTime import CountDown
+from klibs.KLTime import CountDown, precise_time
 
 from PIL import Image
 
@@ -78,6 +78,11 @@ class HLJT(klibs.Experiment):
 		self.rmt = self.get_rmt_power()
 		self.stim_power = int(round(self.rmt * 1.1))
 		self.magstim.set_power(self.stim_power)
+
+		# Gather possible TMS onset delays
+		self.task_blocks = P.tms_pulse_delays.copy()
+		random.shuffle(self.task_blocks)
+		self.tms_pulse_onset = None
 
 		# Run through task instructions
 		self.instructions()
@@ -199,6 +204,17 @@ class HLJT(klibs.Experiment):
 
 
 	def block(self):
+		# If not the practice block, grab the randomized TMS pulse onset for the block
+		if not P.practicing:
+			self.tms_pulse_onset = self.task_blocks.pop()
+			if self.tms_pulse_onset == None:
+				# For the no-stim block, set output power to 50% of RMT
+				self.stim_power = int(round(self.rmt * 0.5))
+			else:
+				# For stim blocks, set output power to 110% of RMT
+				self.stim_power = int(round(self.rmt * 1.1))
+			self.magstim.set_power(self.stim_power)
+
 		if self.first_block:
 			self.trials_since_break = 0
 			msg1 = message("Practice complete!", blit_txt=False)
@@ -220,6 +236,8 @@ class HLJT(klibs.Experiment):
 	def trial_prep(self):
 		# Check if it's time for a break
 		if self.trials_since_break >= P.break_interval:
+			if self.magstim.armed:
+				self.magstim.disarm()
 			self.task_break()
 			self.trials_since_break = 0
 
@@ -227,6 +245,10 @@ class HLJT(klibs.Experiment):
 		img_name = "{0}_{1}_{2}".format(self.sex, self.hand, self.angle)
 		img = self.images[img_name].rotate(self.rotation, expand=True)
 		self.hand_image = NumpySurface(img)
+
+		# Ensure stimulator is armed before starting trial
+		if not self.magstim.armed:
+			self.magstim.arm()
 
 
 	def trial(self):
@@ -244,13 +266,42 @@ class HLJT(klibs.Experiment):
 		blit(self.hand_image, 5, P.screen_c)
 		flip()
 
-		# Initialize and enter the response collection loop
-		response = None
+		# Initialize timers and variables for the response collection loop
 		self.key_listener.init()
+		hand_shown = precise_time()
+		pulse_delay = self.tms_pulse_onset / 1000 if self.tms_pulse_onset else 0.5
+		allow_status_check = not P.practicing
+		allow_fire = not P.practicing
+		tms_fired = False
+
+		# Enter the response collection loop
+		response = None
 		while not response:
+			# Check for keypress responses
 			q = pump(True)
 			ui_request(queue=q)
 			response = self.key_listener.listen(q)
+			# 100 ms before pulse, make sure TMS is ready/able to fire
+			elapsed = precise_time() - hand_shown
+			if allow_status_check and elapsed > (pulse_delay - 0.1):
+				if not self.magstim.ready:
+					allow_fire = False
+				allow_status_check = False
+			# After pulse delay has elapsed, fire TMS
+			elif allow_fire and elapsed > pulse_delay:
+				self.trigger.send('fire_tms')
+				tms_fired = True
+				allow_fire = False
+				if P.development_mode:
+					# In dev mode, flash the screen when TMS is supposed to fire
+					fill(WHITE)
+					flip()
+					fill(WHITE)
+					flip()
+					fill()
+					blit(self.hand_image, 5, P.screen_c)
+					flip()
+
 		self.key_listener.cleanup()
 
 		return {
@@ -260,9 +311,12 @@ class HLJT(klibs.Experiment):
 			"sex": self.sex,
 			"angle": self.angle,
 			"rotation": self.rotation,
+			"tms_onset": self.tms_pulse_onset if self.tms_pulse_onset else "sham",
 			"judgement": response.value,
 			"rt": response.rt,
 			"accuracy": response.value == self.hand,
+			"tms_fired": tms_fired,
+			"rmt": self.rmt,
 		}
 
 

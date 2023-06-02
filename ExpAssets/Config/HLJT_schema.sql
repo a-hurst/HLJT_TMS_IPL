@@ -59,7 +59,10 @@ CREATE TABLE trials (
     sex text not null,
     angle integer not null,
     rotation integer not null,
+    tms_onset text not null,
     judgement text not null,
     rt text not null,
-    accuracy boolean not null
+    accuracy boolean not null,
+    tms_fired boolean not null,
+    rmt float not null
 );

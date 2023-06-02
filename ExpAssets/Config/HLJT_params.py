@@ -16,7 +16,7 @@ view_distance = 57 # in centimeters, 57cm = 1 deg of visual angle per cm of scre
 tms_serial_port = '/dev/ttyUSB0' # Usually 'COM1' on Windows
 labjack_port = 'FIO' # Either FIO, EIO, or CIO
 trigger_codes = {
-    'TMS_fire': 17, # EMG marker 1 + fire TMS on pin 5
+    'fire_tms': 17, # EMG marker 1 + fire TMS on pin 5
 }
 
 #########################################
@@ -43,7 +43,7 @@ saccadic_motion_threshold = 0.15
 #########################################
 multi_session_project = False
 trials_per_block = 72
-blocks_per_experiment = 3
+blocks_per_experiment = 4
 table_defaults = {}
 conditions = []
 default_condition = None
@@ -68,6 +68,7 @@ datafile_ext = ".txt"
 #########################################
 # PROJECT-SPECIFIC VARS
 #########################################
-break_interval = 54  # trials
+break_interval = 36  # trials
 fixation_duration = 3.5 # seconds
 hand_size_deg = 8.0 # height of hand stimuli (in degrees)
+tms_pulse_delays = [250, 500, 750, None] # milliseconds
