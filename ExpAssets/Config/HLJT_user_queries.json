@@ -28,8 +28,8 @@
         {
             "title": "gender",
             "database_field": "gender",
-            "query": "What is your gender?\nAnswer with: (m)ale, (f)emale, or (n)on-binary",
-            "accepted": ["m", "f", "n"],
+            "query": "What is your gender?\nAnswer with: (m)ale, (f)emale, (n)on-binary, or (p)refer not to say",
+            "accepted": ["m", "f", "n", "p"],
             "allow_null": false,
             "format": {
                 "type": "str",
