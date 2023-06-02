@@ -441,8 +441,7 @@ class MagnetoController(TMSController):
         self._device.arm()
 
     def get_power(self):
-        pwr_a, pwr_b, interval = self._device.get_settings()
-        return pwr_a
+        return self._device.get_power()
 
     def disarm(self):
         self._device.disarm()
