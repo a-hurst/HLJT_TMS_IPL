@@ -73,3 +73,4 @@ break_interval = 36  # trials
 fixation_duration = 3.5 # seconds
 hand_size_deg = 8.0 # height of hand stimuli (in degrees)
 tms_pulse_delays = [250, 500, 750, None] # milliseconds
+greyscale_hands = True

@@ -16,13 +16,20 @@ from klibs.KLUtilities import deg_to_px
 from klibs.KLCommunication import message
 from klibs.KLTime import CountDown, precise_time
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 from responselistener import KeyPressListener
 from communication import get_trigger_port, get_tms_controller
 
 
 WHITE = (255, 255, 255)
+
+
+## TODO ##
+# - 3 blocks per session instead of 4
+# - Randomly stimulate on half of trials in each block
+# - Adjust RMT % to 120
+# - Two sessions w/ 2 possible orders (stim -> sham, sham -> stim)
 
 
 
@@ -55,6 +62,9 @@ class HLJT(klibs.Experiment):
 					basename = tmp.format(sex, hand, angle)
 					img = Image.open(os.path.join(P.image_dir, basename + ".png"))
 					img = img.crop(img.getbbox())
+					# If requested, convert hand images to greyscale
+					if P.greyscale_hands:
+						img = ImageOps.grayscale(img)
 					# Resize the image while preserving its aspect ratio
 					img = img_scale(img, height=img_height)
 					# Save resized image to dict
