@@ -28,7 +28,6 @@ WHITE = (255, 255, 255)
 ## TODO ##
 # - 3 blocks per session instead of 4
 # - Randomly stimulate on half of trials in each block
-# - Adjust RMT % to 120
 # - Two sessions w/ 2 possible orders (stim -> sham, sham -> stim)
 
 
@@ -86,7 +85,7 @@ class HLJT(klibs.Experiment):
 
 		# Set power level to 110% of the participant's RMT
 		self.rmt = self.get_rmt_power()
-		self.stim_power = int(round(self.rmt * 1.1))
+		self.stim_power = int(round(self.rmt * 1.2))
 		self.magstim.set_power(self.stim_power)
 
 		# Gather possible TMS onset delays
@@ -222,7 +221,7 @@ class HLJT(klibs.Experiment):
 				self.stim_power = int(round(self.rmt * 0.5))
 			else:
 				# For stim blocks, set output power to 110% of RMT
-				self.stim_power = int(round(self.rmt * 1.1))
+				self.stim_power = int(round(self.rmt * 1.2))
 			self.magstim.set_power(self.stim_power)
 
 		if self.first_block:
