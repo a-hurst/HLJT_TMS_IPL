@@ -16,7 +16,7 @@ from klibs.KLUtilities import deg_to_px
 from klibs.KLCommunication import message
 from klibs.KLTime import CountDown, precise_time
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageEnhance
 
 from responselistener import KeyPressListener
 from communication import get_trigger_port, get_tms_controller
@@ -26,7 +26,6 @@ WHITE = (255, 255, 255)
 
 
 ## TODO ##
-# - Randomly stimulate on half of trials in each block
 # - Two sessions w/ 2 possible orders (stim -> sham, sham -> stim)
 
 
@@ -63,6 +62,8 @@ class HLJT(klibs.Experiment):
 					# If requested, convert hand images to greyscale
 					if P.greyscale_hands:
 						img = ImageOps.grayscale(img)
+						enhancer = ImageEnhance.Brightness(img)
+						img = enhancer.enhance(0.8)
 					# Resize the image while preserving its aspect ratio
 					img = img_scale(img, height=img_height)
 					# Save resized image to dict
