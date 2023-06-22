@@ -63,6 +63,7 @@ CREATE TABLE trials (
     judgement text not null,
     rt text not null,
     accuracy boolean not null,
+    tms_trial boolean not null,
     tms_fired boolean not null,
     rmt float not null
 );

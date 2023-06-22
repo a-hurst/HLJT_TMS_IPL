@@ -90,7 +90,7 @@ class HLJT(klibs.Experiment):
 		# Gather possible TMS onset delays
 		self.task_blocks = P.tms_pulse_delays.copy()
 		random.shuffle(self.task_blocks)
-		self.tms_pulse_onset = 0  # Default value, gets set later in block()
+		self.tms_pulse_onset = -1  # Default value, gets set later in block()
 
 		# Run through task instructions
 		self.instructions()
@@ -216,6 +216,18 @@ class HLJT(klibs.Experiment):
 		if not P.practicing:
 			self.tms_pulse_onset = self.task_blocks.pop()
 
+		# Maximum allowable gap between pulses is 8 trials, otherwise we risk the
+		# TMS disarming from inactivity. The following code ensures that the maximum
+		# possible interval between pulses is 8 trials.
+		self.pulse_sequence = []
+		if P.practicing:
+			self.pulse_sequence = [False] * P.trials_per_block
+		else:
+			stim_sub_block = [True] * 4 + [False] * 4
+			while len(self.pulse_sequence) < P.trials_per_block:
+				random.shuffle(stim_sub_block)
+				self.pulse_sequence += stim_sub_block
+
 		if self.first_block:
 			self.trials_since_break = 0
 			msg1 = message("Practice complete!", blit_txt=False)
@@ -247,8 +259,11 @@ class HLJT(klibs.Experiment):
 		img = self.images[img_name].rotate(self.rotation, expand=True)
 		self.hand_image = NumpySurface(img)
 
+		# Determine whether the current trial is a TMS pulse trial
+		self.tms_trial = self.pulse_sequence.pop()
+
 		# Ensure stimulator is armed before starting trial
-		if not self.magstim.armed:
+		if not P.practicing and not self.magstim.armed:
 			self.magstim.arm()
 
 
@@ -272,8 +287,8 @@ class HLJT(klibs.Experiment):
 		self.key_listener.init()
 		hand_shown = precise_time()
 		pulse_delay = self.tms_pulse_onset / 1000
-		allow_status_check = not P.practicing
-		allow_fire = not P.practicing
+		allow_status_check = self.tms_trial == True
+		allow_fire = self.tms_trial == True
 		tms_fired = False
 
 		# Enter the response collection loop
@@ -313,10 +328,11 @@ class HLJT(klibs.Experiment):
 			"sex": self.sex,
 			"angle": self.angle,
 			"rotation": self.rotation,
-			"tms_onset": self.tms_pulse_onset if self.tms_pulse_onset else "sham",
+			"tms_onset": self.tms_pulse_onset,
 			"judgement": response.value,
 			"rt": response.rt,
 			"accuracy": response.value == self.hand,
+			"tms_trial": self.tms_trial,
 			"tms_fired": tms_fired,
 			"rmt": self.rmt,
 		}
