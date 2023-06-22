@@ -44,7 +44,7 @@ saccadic_motion_threshold = 0.15
 #########################################
 multi_session_project = False
 trials_per_block = 72
-blocks_per_experiment = 4
+blocks_per_experiment = 3
 table_defaults = {}
 conditions = []
 default_condition = None
@@ -72,5 +72,5 @@ datafile_ext = ".txt"
 break_interval = 36  # trials
 fixation_duration = 3.5 # seconds
 hand_size_deg = 8.0 # height of hand stimuli (in degrees)
-tms_pulse_delays = [250, 500, 750, None] # milliseconds
+tms_pulse_delays = [250, 500, 750] # milliseconds
 greyscale_hands = True

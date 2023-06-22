@@ -26,7 +26,6 @@ WHITE = (255, 255, 255)
 
 
 ## TODO ##
-# - 3 blocks per session instead of 4
 # - Randomly stimulate on half of trials in each block
 # - Two sessions w/ 2 possible orders (stim -> sham, sham -> stim)
 
@@ -83,7 +82,7 @@ class HLJT(klibs.Experiment):
 		if P.run_practice_blocks:
 			self.insert_practice_block(1, trial_counts=12)
 
-		# Set power level to 110% of the participant's RMT
+		# Set power level to 120% of the participant's RMT
 		self.rmt = self.get_rmt_power()
 		self.stim_power = int(round(self.rmt * 1.2))
 		self.magstim.set_power(self.stim_power)
@@ -91,7 +90,7 @@ class HLJT(klibs.Experiment):
 		# Gather possible TMS onset delays
 		self.task_blocks = P.tms_pulse_delays.copy()
 		random.shuffle(self.task_blocks)
-		self.tms_pulse_onset = None
+		self.tms_pulse_onset = 0  # Default value, gets set later in block()
 
 		# Run through task instructions
 		self.instructions()
@@ -216,13 +215,6 @@ class HLJT(klibs.Experiment):
 		# If not the practice block, grab the randomized TMS pulse onset for the block
 		if not P.practicing:
 			self.tms_pulse_onset = self.task_blocks.pop()
-			if self.tms_pulse_onset == None:
-				# For the no-stim block, set output power to 50% of RMT
-				self.stim_power = int(round(self.rmt * 0.5))
-			else:
-				# For stim blocks, set output power to 110% of RMT
-				self.stim_power = int(round(self.rmt * 1.2))
-			self.magstim.set_power(self.stim_power)
 
 		if self.first_block:
 			self.trials_since_break = 0
@@ -279,7 +271,7 @@ class HLJT(klibs.Experiment):
 		# Initialize timers and variables for the response collection loop
 		self.key_listener.init()
 		hand_shown = precise_time()
-		pulse_delay = self.tms_pulse_onset / 1000 if self.tms_pulse_onset else 0.5
+		pulse_delay = self.tms_pulse_onset / 1000
 		allow_status_check = not P.practicing
 		allow_fire = not P.practicing
 		tms_fired = False
