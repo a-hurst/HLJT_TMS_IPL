@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 klibs = {file = "https://github.com/a-hurst/klibs/releases/download/0.7.6b1/klibs.tar.gz"}
-magneto = {git = "https://github.com/a-hurst/magneto.git", ref = "7f92641847d9b878e20fa1bf6293bce001a793fa"}
+magneto = {git = "https://github.com/a-hurst/magneto.git", ref = "72762a8191e256187b59f2a19a260df863ca029f"}
 LabJackPython = "*"
 
 [dev-packages]
