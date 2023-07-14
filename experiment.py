@@ -250,8 +250,7 @@ class HLJT(klibs.Experiment):
 	def trial_prep(self):
 		# Check if it's time for a break
 		if self.trials_since_break >= P.break_interval:
-			if self.magstim.armed:
-				self.magstim.disarm()
+			self.magstim.disarm()
 			self.task_break()
 			self.trials_since_break = 0
 
