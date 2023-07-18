@@ -451,7 +451,11 @@ class MagnetoController(TMSController):
 
     @property
     def armed(self):
-        return self._device.armed
+        armed = self._device.armed
+        # Work around bizarre bug where magstim reports not being armed or disarmed
+        if not self._device._status.standby:
+            armed = True
+        return armed
 
     @property
     def ready(self):
