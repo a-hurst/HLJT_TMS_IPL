@@ -4,9 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-klibs = {file = "https://github.com/a-hurst/klibs/releases/download/0.7.6b1/klibs.tar.gz"}
-magneto = {git = "https://github.com/a-hurst/magneto.git", ref = "df12d1f9daeb5a2cf5784eb22cd5ff81df1b048c"}
+klibs = {git = "https://github.com/a-hurst/klibs.git", ref = "d5775ac89659e502eccc686802ab0ee49b36d1d4"}
+magneto = {git = "https://github.com/a-hurst/magneto.git", ref = "bf20ab0787b27ea3449124e600ccf0f09f3cc1a0"}
 LabJackPython = "*"
-pillow = "==9.5.0"
 
 [dev-packages]

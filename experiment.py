@@ -25,10 +25,6 @@ from communication import get_trigger_port, get_tms_controller
 WHITE = (255, 255, 255)
 
 
-## TODO ##
-# - Two sessions w/ 2 possible orders (stim -> sham, sham -> stim)
-
-
 
 class HLJT(klibs.Experiment):
 
@@ -83,9 +79,14 @@ class HLJT(klibs.Experiment):
 		if P.run_practice_blocks:
 			self.insert_practice_block(1, trial_counts=12)
 
-		# Set power level to 120% of the participant's RMT
+		# Determine session type (sham or stim) based on condition
+		session_seq = ["stim", "sham"] if P.condition == "A" else ["sham", "stim"]
+		self.session_type = session_seq[P.session_number - 1]
+
+		# Set power level to a percentage of the participant's RMT
+		stim_pct = 15 if self.session_type == "sham" else 120
 		self.rmt = self.get_rmt_power()
-		self.stim_power = int(round(self.rmt * 1.2))
+		self.stim_power = int(round(self.rmt * (stim_pct / 100.0)))
 		self.magstim.set_power(self.stim_power)
 
 		# Gather possible TMS onset delays
@@ -94,7 +95,9 @@ class HLJT(klibs.Experiment):
 		self.tms_pulse_onset = -1  # Default value, gets set later in block()
 
 		# Run through task instructions
-		self.instructions()
+		if not P.resumed_session:
+			self.instructions()
+		random.seed(P.random_seed) # Ensures instructions don't affect random seed
 
 
 	def get_rmt_power(self):
@@ -229,7 +232,14 @@ class HLJT(klibs.Experiment):
 				random.shuffle(stim_sub_block)
 				self.pulse_sequence += stim_sub_block
 
-		if self.first_block:
+		if P.resumed_session:
+			self.trials_since_break = P.trial_number % P.break_interval
+			msg1 = message("Session reloaded successfully!", blit_txt=False)
+			msg2 = message("Press any key to begin the experiment.", blit_txt=False)
+			wait_msg(msg1, msg2)
+			P.resumed_session = False
+
+		elif self.first_block:
 			self.trials_since_break = 0
 			msg1 = message("Practice complete!", blit_txt=False)
 			msg2 = message("Press any key to begin the experiment.", blit_txt=False)
@@ -322,6 +332,7 @@ class HLJT(klibs.Experiment):
 		self.key_listener.cleanup()
 
 		return {
+			"session_num": P.session_number,
 			"block_num": P.block_number,
 			"trial_num": P.trial_number,
 			"hand": self.hand,
@@ -329,6 +340,7 @@ class HLJT(klibs.Experiment):
 			"angle": self.angle,
 			"rotation": self.rotation,
 			"tms_onset": self.tms_pulse_onset,
+			"sham": self.session_type == "sham",
 			"judgement": response.value,
 			"rt": response.rt,
 			"accuracy": response.value == self.hand,

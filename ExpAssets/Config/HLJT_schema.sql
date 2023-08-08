@@ -53,6 +53,7 @@ CREATE TABLE participants (
 CREATE TABLE trials (
     id integer primary key autoincrement not null,
     participant_id integer not null references participants(id),
+    session_num integer not null,
     block_num integer not null,
     trial_num integer not null,
     hand text not null,
@@ -60,6 +61,7 @@ CREATE TABLE trials (
     angle integer not null,
     rotation integer not null,
     tms_onset text not null,
+    sham boolean not null,
     judgement text not null,
     rt text not null,
     accuracy boolean not null,
