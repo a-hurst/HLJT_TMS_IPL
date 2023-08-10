@@ -84,9 +84,10 @@ class HLJT(klibs.Experiment):
 		self.session_type = session_seq[P.session_number - 1]
 
 		# Set power level to a percentage of the participant's RMT
-		stim_pct = 15 if self.session_type == "sham" else 120
 		self.rmt = self.get_rmt_power()
 		self.stim_power = int(round(self.rmt * (stim_pct / 100.0)))
+		if self.session_type == "sham":
+			self.stim_power = 15
 		self.magstim.set_power(self.stim_power)
 
 		# Gather possible TMS onset delays
