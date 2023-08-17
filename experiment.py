@@ -85,7 +85,7 @@ class HLJT(klibs.Experiment):
 
 		# Set power level to a percentage of the participant's RMT
 		self.rmt = self.get_rmt_power()
-		self.stim_power = int(round(self.rmt * (stim_pct / 100.0)))
+		self.stim_power = int(round(self.rmt * 1.2))
 		if self.session_type == "sham":
 			self.stim_power = 15
 		self.magstim.set_power(self.stim_power)
