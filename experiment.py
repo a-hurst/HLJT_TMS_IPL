@@ -74,10 +74,24 @@ class HLJT(klibs.Experiment):
 		# Initialize runtime variables
 		self.trials_since_break = 0
 
+		# Gather possible TMS onset delays
+		self.task_blocks = P.tms_pulse_delays.copy()
+		random.shuffle(self.task_blocks)
+		self.tms_pulse_onset = -1  # Default value, gets set later in block()
+
+		# Pre-generate pulse sequence for each block
+		self.pulse_sequences = []
+		for delay in self.task_blocks:
+			seq = generate_pulses(P.trials_per_block)
+			self.pulse_sequences.append(seq)
+
 		# Insert familiarization block
 		self.first_block = False
 		if P.run_practice_blocks:
 			self.insert_practice_block(1, trial_counts=12)
+			self.task_blocks = [-1] + self.task_blocks
+			practice_pulses = [False] * 12
+			self.pulse_sequences = [practice_pulses] + self.pulse_sequences
 
 		# Determine session type (sham or stim) based on condition
 		session_seq = ["stim", "sham"] if P.condition == "A" else ["sham", "stim"]
@@ -89,11 +103,6 @@ class HLJT(klibs.Experiment):
 		if self.session_type == "sham":
 			self.stim_power = 15
 		self.magstim.set_power(self.stim_power)
-
-		# Gather possible TMS onset delays
-		self.task_blocks = P.tms_pulse_delays.copy()
-		random.shuffle(self.task_blocks)
-		self.tms_pulse_onset = -1  # Default value, gets set later in block()
 
 		# Run through task instructions
 		if not P.resumed_session:
@@ -217,21 +226,9 @@ class HLJT(klibs.Experiment):
 
 
 	def block(self):
-		# If not the practice block, grab the randomized TMS pulse onset for the block
-		if not P.practicing:
-			self.tms_pulse_onset = self.task_blocks.pop()
-
-		# Maximum allowable gap between pulses is 8 trials, otherwise we risk the
-		# TMS disarming from inactivity. The following code ensures that the maximum
-		# possible interval between pulses is 8 trials.
-		self.pulse_sequence = []
-		if P.practicing:
-			self.pulse_sequence = [False] * P.trials_per_block
-		else:
-			stim_sub_block = [True] * 4 + [False] * 4
-			while len(self.pulse_sequence) < P.trials_per_block:
-				random.shuffle(stim_sub_block)
-				self.pulse_sequence += stim_sub_block
+		# Get the TMS pulse onset and randomized pulse sequence for the current block
+		self.tms_pulse_onset = self.task_blocks[P.block_number - 1]
+		self.pulse_sequence = self.pulse_sequences[P.block_number - 1]
 
 		if P.resumed_session:
 			self.trials_since_break = P.trial_number % P.break_interval
@@ -271,7 +268,7 @@ class HLJT(klibs.Experiment):
 		self.hand_image = NumpySurface(img)
 
 		# Determine whether the current trial is a TMS pulse trial
-		self.tms_trial = self.pulse_sequence.pop()
+		self.tms_trial = self.pulse_sequence[P.trial_number - 1]
 
 		# Ensure stimulator is armed before starting trial
 		if not P.practicing and not self.magstim.armed:
@@ -388,6 +385,18 @@ def random_choices(x, n=1):
 		random.shuffle(more)
 		out += more
 	return out[:n]
+
+
+def generate_pulses(n_trials):
+	# Maximum allowable gap between pulses is 8 trials, otherwise we risk the
+	# TMS disarming from inactivity. The following code ensures that the maximum
+	# possible interval between pulses is 8 trials.
+	pulses = []
+	stim_sub_block = [True] * 4 + [False] * 4
+	while len(pulses) < n_trials:
+		random.shuffle(stim_sub_block)
+		pulses += stim_sub_block
+	return pulses
 
 
 def img_scale(img, width=None, height=None):
